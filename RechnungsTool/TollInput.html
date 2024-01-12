@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rechnungs-Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            display: block;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px auto;
+            cursor: pointer;
+        }
+
+        .material, .personal {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Stile für DIN A4-Format */
+        @media print {
+            body {
+                width: 21cm;
+                height: 29.7cm;
+                margin: 0;
+                padding: 0;
+                font-size: 14px;
+            }
+
+            h1 {
+                text-align: center;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            input[type="text"],
+            input[type="number"] {
+                width: 100%;
+                padding: 5px;
+                margin-bottom: 5px;
+                border: none;
+                border-bottom: 1px solid #000;
+            }
+
+            button {
+                display: none;
+            }
+
+            .material, .personal {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+<h1>Rechnungs-Generator</h1>
+<label for="name">Name:</label>
+<input type="text" id="name">
+
+<label for="anfahrtskosten">Anfahrtskosten:</label>
+<input type="number" id="anfahrtskosten">
+
+<div id="material-container">
+    <label>Materialien:</label>
+    <div class="material">
+        <input type="text" placeholder="Materialname">
+        <input type="number" placeholder="Materialkosten">
+    </div>
+    <button id="addMaterial">Material hinzufügen</button>
+</div>
+
+<div id="personal-container">
+    <label>Personalkosten:</label>
+    <select id="personal-select">
+        <option value="personal1">Meister</option>
+        <option value="personal2">Geselle</option>
+        <option value="personal3">Azubi</option>
+        <!-- Weitere Optionen hier hinzufügen -->
+    </select>
+    <input type="number" id="personal-cost" placeholder="Personalkosten">
+    <button id="addPersonal">Personal hinzufügen</button>
+</div>
+
+<button id="generateInvoice">Rechnung generieren</button>
+
+<div id="rechnung"></div>
+
+<script>
+    document.getElementById('addMaterial').addEventListener('click', function () {
+        const materialContainer = document.getElementById('material-container');
+        const materialInput = document.createElement('div');
+        materialInput.className = 'material';
+        materialInput.innerHTML = `
+            <input type="text" placeholder="Materialname">
+            <input type="number" placeholder="Materialkosten">
+        `;
+        materialContainer.insertBefore(materialInput, document.getElementById('addMaterial'));
+    });
+
+    document.getElementById('addPersonal').addEventListener('click', function () {
+        const personalSelect = document.getElementById('personal-select');
+        const selectedOption = personalSelect.options[personalSelect.selectedIndex];
+        const personalName = selectedOption.value;
+        const personalCost = parseFloat(document.getElementById('personal-cost').value) || 0;
+
+        if (personalName && personalCost) {
+            const personalContainer = document.getElementById('personal-container');
+            const personalInput = document.createElement('div');
+            personalInput.className = 'personal';
+            personalInput.innerHTML = `
+                <p>${personalName}: ${personalCost} EUR</p>
+            `;
+            personalContainer.insertBefore(personalInput, document.getElementById('addPersonal'));
+        }
+    });
+
+    document.getElementById('generateInvoice').addEventListener('click', function () {
+        const name = document.getElementById('name').value;
+        const anfahrtskosten = parseFloat(document.getElementById('anfahrtskosten').value) || 0;
+
+        const materialInputs = document.querySelectorAll('.material');
+        const materialList = [];
+
+        materialInputs.forEach(materialInput => {
+            const materialName = materialInput.querySelector('input[type="text"]').value;
+            const materialCost = parseFloat(materialInput.querySelector('input[type="number"]').value) || 0;
+
+            if (materialName && materialCost) {
+                materialList.push({ name: materialName, cost: materialCost });
+            }
+        });
+
+        const personalInputs = document.querySelectorAll('.personal p');
+        const personalList = [];
+
+        personalInputs.forEach(personalInput => {
+            const [personalName, personalCostStr] = personalInput.textContent.split(':');
+            const personalCost = parseFloat(personalCostStr.trim()) || 0;
+
+            if (personalName && personalCost) {
+                personalList.push({ name: personalName.trim(), cost: personalCost });
+            }
+        });
+
+
+        let gesamtkosten = anfahrtskosten;
+
+        materialList.forEach(material => {
+            gesamtkosten += material.cost;
+        });
+
+        personalList.forEach(personal => {
+            gesamtkosten += personal.cost;
+        });
+
+        const rechnungstext = `
+            <h2>Rechnung:</h2>
+            <p>Name: ${name}</p>
+            <p>Anfahrtskosten: ${anfahrtskosten} EUR</p>
+            <p>Materialkosten:</p>
+            <ul>
+                ${materialList.map(item => `<li>${item.name}: ${item.cost} EUR</li>`).join('')}
+            </ul>
+            <p>Personalkosten:</p>
+            <ul>
+                ${personalList.map(item => `<li>${item.name}: ${item.cost} EUR</li>`).join('')}
+            </ul>
+            <hr>
+            <p><strong>Gesamtkosten: ${gesamtkosten} EUR</strong></p>
+        `;
+
+        document.getElementById('rechnung').innerHTML = rechnungstext;
+    });
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
